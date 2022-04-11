@@ -39,7 +39,7 @@ int sendMsg(int argc, char *argv[]) {
   bufLength = strlen(buffer.msg) + 1;
   msgsnd(msqID, &buffer, bufLength, IPC_NOWAIT);
   
-  printf("%s\n", buffer.msg);
+  printf("Msg received (%ld): %s\n",buffer.msg_type ,buffer.msg);
   return -1;
 }
 
