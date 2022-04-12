@@ -37,9 +37,11 @@ int sendMsg(int argc, char *argv[]) {
   buffer.msg_type = atoi(argv[3]); //msg buffer type
   strncpy(buffer.msg, argv[4], 128); // copies the first 128 characters from argv[4] to buffer.msg
   bufLength = strlen(buffer.msg) + 1;
+
+
   msgsnd(msqID, &buffer, bufLength, IPC_NOWAIT);
-  
   printf("Msg received (%ld): %s\n",buffer.msg_type ,buffer.msg);
+
   return -1;
 }
 
@@ -56,8 +58,13 @@ int receiveMsg(int argc, char *argv[]) {
   key = atoi(argv[2]);
   msqID = msgget(key, 0666);
 
+  // part 1
   msgrcv(msqID, &buffer, 128, atoi(argv[3]), 0);
   printf("(%ld): %s\n", buffer.msg_type, buffer.msg);
+
+  //part 2
+  // msgrcv(msqID, &buffer, 128, atoi(argv[3]), IPC_NOWAIT);
+  // printf("(%ld): %s\n", buffer.msg_type, buffer.msg);
   return -1;
 }
 
