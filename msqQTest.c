@@ -36,10 +36,10 @@ int sendMsg(int argc, char *argv[]) {
 
   buffer.msg_type = atoi(argv[3]); //msg buffer type
   strncpy(buffer.msg, argv[4], 128); // copies the first 128 characters from argv[4] to buffer.msg
-  bufLength = strlen(buffer.msg) + 1;
+  //bufLength = strlen(buffer.msg) + 1;
 
 
-  msgsnd(msqID, &buffer, bufLength, IPC_NOWAIT);
+  msgsnd(msqID, &buffer, sizeof(buffer.sender_id) + sizeof(buffer.msg), IPC_NOWAIT);
   printf("Msg received (%ld): %s\n",buffer.msg_type ,buffer.msg);
 
   return -1;
@@ -56,14 +56,17 @@ int receiveMsg(int argc, char *argv[]) {
   }
 
   key = atoi(argv[2]);
-  msqID = msgget(key, 0666);
+  msqID = msgget(key, 0);
 
   // part 1
-  msgrcv(msqID, &buffer, 128, atoi(argv[3]), 0);
+  msgrcv(msqID, &buffer, sizeof(buffer.sender_id) + sizeof(buffer.msg), atoi(argv[3]), 0);
   printf("(%ld): %s\n", buffer.msg_type, buffer.msg);
 
   //part 2
-  // msgrcv(msqID, &buffer, 128, atoi(argv[3]), IPC_NOWAIT);
+  //By chaninging the last argument from 0 to IPC_NOWAIT the receiver does not wait for the sender to send a message
+  //It then pulls out garbage characters from memory. Without the IPC_NOWAIT flag the receiver will wait for the sender to send a message.
+  
+  // msgrcv(msqID, &buffer, sizeof(buffer.sender_id) + sizeof(buffer.msg), atoi(argv[3]), IPC_NOWAIT);
   // printf("(%ld): %s\n", buffer.msg_type, buffer.msg);
   return -1;
 }
@@ -87,11 +90,7 @@ int removeQueue(int argc, char *argv[]) {
 int main (int argc, char *argv[])
 {
   key_t mykey;
-  // if (argc != 3) {
-  //   printf("[error] msqQTest -flag <key>");
-  //   return -1;
-  // } 
-
+   
   // if create flag is set, create a new msgQueue using given key
   if (strcmp(argv[1],"-c") == 0 || strcmp(argv[1],"-C") == 0) {
     create_queue(argv);
